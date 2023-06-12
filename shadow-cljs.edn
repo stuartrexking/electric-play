@@ -1,0 +1,10 @@
+{:deps   {:aliases [:shadow-cljs]}
+ :builds {:dev {:target     :browser
+                :devtools   {:watch-dir       "resources/public" ; live reload CSS
+                             :hud             #{:errors :progress}
+                             :ignore-warnings true}
+                :output-dir "resources/public/js"
+                :asset-path "/assets/js"
+                :modules    {:main {:entries [core]
+                                    :init-fn core/init!}}}}
+ :nrepl  {:port 9001}}
