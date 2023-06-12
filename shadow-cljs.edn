@@ -6,5 +6,5 @@
                 :output-dir "resources/public/js"
                 :asset-path "/assets/js"
                 :modules    {:main {:entries [core]
-                                    :init-fn core/init!}}}}
+                                    :init-fn core/start!}}}}
  :nrepl  {:port 9001}}

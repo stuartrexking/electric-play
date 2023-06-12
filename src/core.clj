@@ -2,22 +2,37 @@
   (:require
     [aleph.http :as http]
     [clojure.repl.deps :as deps]
+    [manifold.deferred :as d]
+    [manifold.stream :as s]
     [reitit.ring :as ring]
     [ring.middleware.content-type :as content-type]
     [ring.util.response :as response]
     [shadow.cljs.devtools.api :as shadow]
     [shadow.cljs.devtools.server :as server]))
 
+
+
+(defn electric-websocket-middleware [handler]
+  (fn [req]
+    (d/let-flow [conn (d/catch
+                        (http/websocket-connection req)
+                        (fn [_] nil))]
+      (if-not conn
+        (handler req)
+        (s/put! conn "Hello!")))))
+
 ;;router
 (def ring-handler
   (ring/ring-handler
     (ring/router
       [["/" {:get {:handler (fn [_]
-                              (-> "Meow!"
-                                (response/response)
-                                (response/content-type "text/plain")))}}]
+                              (-> "public/index.html"
+                                (response/resource-response)
+                                (response/content-type "text/html")
+                                (response/header "Cache-Control" "no-store")))}}]
        ["/assets/*" (ring/create-resource-handler)]]
-      {:data {:middleware [[content-type/wrap-content-type]]}})
+      {:data {:middleware [[electric-websocket-middleware]
+                           [content-type/wrap-content-type]]}})
     (constantly {:status 404, :body "Oof!"})))
 
 ;;http server

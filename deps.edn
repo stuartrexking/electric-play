@@ -1,6 +1,7 @@
 {:aliases {:shadow-cljs {:extra-deps {binaryage/devtools   {:mvn/version "1.0.6"}
                                       thheller/shadow-cljs {:mvn/version "2.20.20"}}}}
  :deps    {aleph/aleph               {:mvn/version "0.6.2"}
+           manifold/manifold         {:mvn/version "0.4.1"}
            metosin/reitit-core       {:mvn/version "0.7.0-alpha4"}
            metosin/reitit-ring       {:mvn/version "0.7.0-alpha4"}
            org.clojure/clojure       {:mvn/version "1.12.0-alpha2"}
