@@ -18,8 +18,6 @@
     (response/bad-request)
     (response/content-type "application/text")))
 
-(def is-websocket-request? http.server/websocket-upgrade-request?)
-
 (defonce !connections (atom {}))
 
 (defn consume-message [message]
@@ -43,7 +41,7 @@
 
 (defn wrap-electric-websocket [handler]
   (fn [req]
-    (if (is-websocket-request? req)
+    (if (http.server/websocket-upgrade-request? req)
       (electric-websocket-handler req)
       (handler req))))
 
