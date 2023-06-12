@@ -1,25 +1,44 @@
 (ns core
   (:require
     [aleph.http :as http]
+    [aleph.http.server :as http.server]
     [clojure.repl.deps :as deps]
     [manifold.deferred :as d]
     [manifold.stream :as s]
     [reitit.ring :as ring]
     [ring.middleware.content-type :as content-type]
+    [ring.middleware.cookies :as cookies]
     [ring.util.response :as response]
     [shadow.cljs.devtools.api :as shadow]
     [shadow.cljs.devtools.server :as server]))
 
+(def non-websocket-request
+  (-> "Expected a websocket request."
+    (response/bad-request)
+    (response/content-type "application/text")))
 
+(def is-websocket-request? http.server/websocket-upgrade-request?)
+
+(defn electric-websocket-handler [req]
+  (d/let-flow [conn (d/catch
+                      (http/websocket-connection req)
+                      (fn [_] nil))]
+    (if-not conn
+      non-websocket-request
+      (do
+        (s/put! conn "Hello!")
+        nil))))
+
+(defn wrap-electric-websocket [handler]
+  (fn [req]
+    (if (is-websocket-request? req)
+      (electric-websocket-handler req)
+      (handler req))))
 
 (defn electric-websocket-middleware [handler]
-  (fn [req]
-    (d/let-flow [conn (d/catch
-                        (http/websocket-connection req)
-                        (fn [_] nil))]
-      (if-not conn
-        (handler req)
-        (s/put! conn "Hello!")))))
+  (-> handler
+    (cookies/wrap-cookies)
+    (wrap-electric-websocket)))
 
 ;;router
 (def ring-handler
