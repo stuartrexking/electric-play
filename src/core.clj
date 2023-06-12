@@ -3,6 +3,9 @@
     [aleph.http :as http]
     [aleph.http.server :as http.server]
     [clojure.repl.deps :as deps]
+    [hyperfiddle.electric :as e]
+    [hyperfiddle.electric.impl.io :as io]
+    [hyperfiddle.electric.impl.runtime :as r]
     [manifold.deferred :as d]
     [manifold.stream :as s]
     [reitit.ring :as ring]
@@ -20,9 +23,15 @@
 
 (defonce !connections (atom {}))
 
-(defn consume-message [original-request message]
-  (prn original-request)
-  (prn message))
+#_(defn consume-message [original-request conn message]
+    (binding [e/*http-request* original-request]
+      (let [resolvef (bound-fn [not-found x] (r/dynamic-resolve not-found x))]
+        (e/eval resolvef
+          (io/decode message))
+        (prn resolvef)))
+
+    (prn original-request)
+    (prn message))
 
 (defn close-connection [connection-id]
   (println (format "Connection %s closed" connection-id))
@@ -35,10 +44,27 @@
     (if-not conn
       ;This shouldn't ever return with this setup
       non-websocket-request
+
       (let [connection-id (str (UUID/randomUUID))]
 
         (s/on-closed conn (partial close-connection connection-id))
-        (s/consume (partial consume-message req) conn)
+
+        (binding [e/*http-request* req]
+          (let [resolve-m (bound-fn [not-found x] (r/dynamic-resolve not-found x))]
+            (d/let-flow [program (s/take! conn)]
+              (let [write-fn   (fn [m]
+                                 (println "write-fn")
+                                 (prn m)
+                                 (s/put! conn (io/encode m)))
+                    read-fn    (fn [cb]
+                                 (println "read-fn")
+                                 (d/let-flow [m (s/take! conn)]
+                                   (prn m)
+                                   (cb (io/decode m))))
+                    booting-fn (e/eval resolve-m program)]
+                (booting-fn write-fn read-fn)))))
+
+        ;(s/consume (partial consume-message req conn) conn)
 
         (swap! !connections assoc connection-id conn)
         (s/put! conn connection-id))))
@@ -107,5 +133,17 @@
   (shadow/compile :dev)
   (shadow/watch :dev)
   (shadow/release :dev)
+
+  (def x (s/stream))
+
+  (s/close! x)
+
+  @(s/put! x :a)
+  @(s/put! s :b)
+  @(s/put! s :c)
+
+  (s/take! s)
+
+  (s/consume (fn [x] (prn x)) x)
 
   *e)
