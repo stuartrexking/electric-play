@@ -24,6 +24,7 @@
                       (http/websocket-connection req)
                       (fn [_] nil))]
     (if-not conn
+      ;This shouldn't ever return with this setup
       non-websocket-request
       (do
         (s/put! conn "Hello!")
