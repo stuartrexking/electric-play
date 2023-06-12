@@ -33,6 +33,9 @@
       ;This shouldn't ever return with this setup
       non-websocket-request
       (let [connection-id (str (UUID/randomUUID))]
+        (s/on-closed conn (fn []
+                            (println (format "Connection %s closed" connection-id))
+                            (swap! !connections dissoc connection-id)))
         (s/consume consume-message conn)
         (swap! !connections assoc connection-id conn)
         (s/put! conn connection-id)
