@@ -20,8 +20,13 @@
 
 (defonce !connections (atom {}))
 
-(defn consume-message [message]
+(defn consume-message [original-request message]
+  (prn original-request)
   (prn message))
+
+(defn close-connection [connection-id]
+  (println (format "Connection %s closed" connection-id))
+  (swap! !connections dissoc connection-id))
 
 (defn electric-websocket-handler [req]
   (d/let-flow [conn (d/catch
@@ -31,13 +36,14 @@
       ;This shouldn't ever return with this setup
       non-websocket-request
       (let [connection-id (str (UUID/randomUUID))]
-        (s/on-closed conn (fn []
-                            (println (format "Connection %s closed" connection-id))
-                            (swap! !connections dissoc connection-id)))
-        (s/consume consume-message conn)
+
+        (s/on-closed conn (partial close-connection connection-id))
+        (s/consume (partial consume-message req) conn)
+
         (swap! !connections assoc connection-id conn)
-        (s/put! conn connection-id)
-        nil))))
+        (s/put! conn connection-id))))
+  ;ring handler must return something
+  nil)
 
 (defn wrap-electric-websocket [handler]
   (fn [req]
