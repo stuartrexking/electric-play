@@ -10,7 +10,8 @@
     [ring.middleware.cookies :as cookies]
     [ring.util.response :as response]
     [shadow.cljs.devtools.api :as shadow]
-    [shadow.cljs.devtools.server :as server]))
+    [shadow.cljs.devtools.server :as server])
+  (:import (java.util UUID)))
 
 (def non-websocket-request
   (-> "Expected a websocket request."
@@ -19,6 +20,11 @@
 
 (def is-websocket-request? http.server/websocket-upgrade-request?)
 
+(defonce !connections (atom {}))
+
+(defn consume-message [message]
+  (prn message))
+
 (defn electric-websocket-handler [req]
   (d/let-flow [conn (d/catch
                       (http/websocket-connection req)
@@ -26,8 +32,10 @@
     (if-not conn
       ;This shouldn't ever return with this setup
       non-websocket-request
-      (do
-        (s/put! conn "Hello!")
+      (let [connection-id (str (UUID/randomUUID))]
+        (s/consume consume-message conn)
+        (swap! !connections assoc connection-id conn)
+        (s/put! conn connection-id)
         nil))))
 
 (defn wrap-electric-websocket [handler]
