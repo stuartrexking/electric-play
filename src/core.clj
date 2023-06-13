@@ -8,6 +8,7 @@
     [hyperfiddle.electric.impl.runtime :as r]
     [manifold.deferred :as d]
     [manifold.stream :as s]
+    [missionary.core :as m]
     [reitit.ring :as ring]
     [ring.middleware.content-type :as content-type]
     [ring.middleware.cookies :as cookies]
@@ -51,23 +52,29 @@
 
         (binding [e/*http-request* req]
           (let [resolve-m (bound-fn [not-found x] (r/dynamic-resolve not-found x))]
-            (d/let-flow [program (s/take! conn)]
-              (let [write-fn   (fn [m]
-                                 (println "write-fn")
-                                 (prn m)
-                                 (s/put! conn (io/encode m)))
+            (d/let-flow [encoded-program (s/take! conn)]
+              (let [program    (io/decode encoded-program)
+                    write-fn   (fn [m]
+                                 (fn [s f]
+                                   ;TODO: Error handling
+                                   (println "write-fn")
+                                   (prn m)
+                                   (s/put! conn (io/encode m))
+                                   #()))
                     read-fn    (fn [cb]
                                  (println "read-fn")
                                  (d/let-flow [m (s/take! conn)]
                                    (prn m)
                                    (cb (io/decode m))))
                     booting-fn (e/eval resolve-m program)]
-                (booting-fn write-fn read-fn)))))
+                (m/sp
+                  (m/?
+                    (booting-fn write-fn read-fn))))))))))
 
-        ;(s/consume (partial consume-message req conn) conn)
+  ;(s/consume (partial consume-message req conn) conn)
 
-        (swap! !connections assoc connection-id conn)
-        (s/put! conn connection-id))))
+  ;(swap! !connections assoc connection-id conn))))
+  ;(s/put! conn connection-id))))
   ;ring handler must return something
   nil)
 
