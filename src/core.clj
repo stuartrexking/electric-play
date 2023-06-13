@@ -38,6 +38,20 @@
   (println (format "Connection %s closed" connection-id))
   (swap! !connections dissoc connection-id))
 
+(defn write-msg [conn message]
+  (fn [s f]
+    (try
+      (s/put! conn message)
+      (catch Throwable e (f e)))
+    #()))
+
+(defn read-msg [conn cb]
+  (println "read-msg")
+  (prn cb)
+  (d/let-flow [message (s/take! conn)]
+    (cb (io/decode message))
+    #()))
+
 (defn electric-websocket-handler [req]
   (d/let-flow [conn (d/catch
                       (http/websocket-connection req)
@@ -54,22 +68,11 @@
           (let [resolve-m (bound-fn [not-found x] (r/dynamic-resolve not-found x))]
             (d/let-flow [encoded-program (s/take! conn)]
               (let [program    (io/decode encoded-program)
-                    write-fn   (fn [m]
-                                 (fn [s f]
-                                   ;TODO: Error handling
-                                   (println "write-fn")
-                                   (prn m)
-                                   (s/put! conn (io/encode m))
-                                   #()))
-                    read-fn    (fn [cb]
-                                 (println "read-fn")
-                                 (d/let-flow [m (s/take! conn)]
-                                   (prn m)
-                                   (cb (io/decode m))))
+                    write-fn   (comp (partial write-msg conn) io/encode)
+                    read-fn    (partial read-msg conn)
                     booting-fn (e/eval resolve-m program)]
-                (m/sp
-                  (m/?
-                    (booting-fn write-fn read-fn))))))))))
+                (m/?
+                  (booting-fn write-fn read-fn)))))))))
 
   ;(s/consume (partial consume-message req conn) conn)
 
@@ -152,5 +155,14 @@
   (s/take! s)
 
   (s/consume (fn [x] (prn x)) x)
+
+  (def d (d/deferred))
+  (d/chain d (fn [m] (prn (.getName (Thread/currentThread)))))
+
+  (d/success! d "Success")
+  (prn (.getName (Thread/currentThread)))
+  (d/error! d #(println "Error"))
+
+  @d
 
   *e)
