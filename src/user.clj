@@ -10,12 +10,14 @@
 (defn main [& _]
   (@shadow-start!)
   (@shadow-watch :dev)
-  (@start-server!)
-  (comment (@stop-server!)))
+  (@start-server!))
 
 (comment
   ;; all you need to run
   (main)
+
+  ;; if you must
+  (@stop-server!)
 
   ;; don't really need these
   (hyperfiddle.rcf/enable!)

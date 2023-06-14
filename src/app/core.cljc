@@ -1,5 +1,6 @@
 (ns app.core
-  (:require [app.system-properties]
+  (:require [app.chat]
+            [app.system-properties]
             [app.todo-list]
             [app.toggle]
             [app.two-clocks]
@@ -25,14 +26,18 @@
                        ::title  "Toggle"}
    'system-properties {::page   app.system-properties/Page
                        ::source "https://electric.hyperfiddle.net/user.demo-system-properties!SystemProperties"
-                       ::title  "System Properties"}})
+                       ::title  "System Properties"}
+   'chat              {::page   app.chat/Page
+                       ::source "https://electric.hyperfiddle.net/user.demo-chat!Chat"
+                       ::title  "Chat"}})
 
 (e/defn Nav []
   (dom/ul
     (dom/li (history/link ['todo-list] {} (dom/text "Todo-list")))
     (dom/li (history/link ['two-clocks] {} (dom/text "Two clocks")))
     (dom/li (history/link ['toggle] {} (dom/text "Toggle")))
-    (dom/li (history/link ['system-properties] {} (dom/text "System Properties")))))
+    (dom/li (history/link ['system-properties] {} (dom/text "System Properties")))
+    (dom/li (history/link ['chat] {} (dom/text "Chat")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
