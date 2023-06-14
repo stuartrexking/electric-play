@@ -1,11 +1,11 @@
 (ns ^:dev/always core
   (:require
-    [app.todo-list]
+    [app.core]
     [hyperfiddle.electric]
     [hyperfiddle.electric-dom2]))
 
 (def electric-main
-  (hyperfiddle.electric/boot (app.todo-list/Main.)))
+  (hyperfiddle.electric/boot (app.core/Page.)))
 
 (defonce reactor nil)
 

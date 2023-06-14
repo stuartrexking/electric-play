@@ -4,8 +4,7 @@
             #?(:clj [datascript.core :as d])                ; database on server
             [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]
-            [hyperfiddle.electric-ui4 :as ui]
-            [hyperfiddle.history :as history]))
+            [hyperfiddle.electric-ui4 :as ui]))
 
 #?(:clj (defonce !conn (d/create-conn {})))                 ; database on server
 (e/def db)                                                  ; injected database ref; Electric defs are always dynamic
@@ -53,11 +52,10 @@
                       :where [?e :task/status]] db)
             (sort-by :task/description))))
 
-(e/defn Todo-list []
+(e/defn Page []
   (e/server
     (binding [db (e/watch !conn)]
       (e/client
-        (dom/link (dom/props {:rel :stylesheet :href "/assets/todo-list.css"}))
         (dom/h1 (dom/text "minimal todo list"))
         (dom/p (dom/text "it's multiplayer, try two tabs"))
         (dom/div (dom/props {:class "todo-list"})
@@ -69,15 +67,3 @@
           (dom/p (dom/props {:class "counter"})
             (dom/span (dom/props {:class "count"}) (dom/text (e/server (todo-count db))))
             (dom/text " items left")))))))
-
-(defn route->path [route] (clojure.string/join "/" (map contrib.ednish/encode-uri route)))
-(defn path->route [s]
-  (let [s (contrib.ednish/discard-leading-slash s)]
-    (case s "" nil (->> (clojure.string/split s #"/") (mapv contrib.ednish/decode-uri)))))
-
-(e/defn Main []
-  (binding [history/encode route->path
-            history/decode path->route]
-    (history/router (history/HTML5-History.)
-      (binding [dom/node js/document.body]
-        (Todo-list.)))))

@@ -11,7 +11,7 @@
   (@shadow-start!)
   (@shadow-watch :dev)
   (@start-server!)
-  (comment (@stop-server)))
+  (comment (@stop-server!)))
 
 (comment
   ;; all you need to run
