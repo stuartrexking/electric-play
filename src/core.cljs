@@ -5,9 +5,7 @@
     [hyperfiddle.electric-dom2]))
 
 (def electric-main
-  (hyperfiddle.electric/boot
-    (binding [hyperfiddle.electric-dom2/node js/document.body]
-      (app.todo-list/Todo-list.))))
+  (hyperfiddle.electric/boot (app.todo-list/Main.)))
 
 (defonce reactor nil)
 

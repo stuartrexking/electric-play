@@ -1,127 +1,83 @@
 (ns core
   (:require
-    [aleph.http :as http]
-    [aleph.http.server :as http.server]
-    [clojure.repl.deps :as deps]
-    [hyperfiddle.electric :as e]
-    [hyperfiddle.electric.impl.io :as io]
-    [hyperfiddle.electric.impl.runtime :as r]
-    [manifold.deferred :as d]
-    [manifold.stream :as s]
-    [missionary.core :as m]
+    [hyperfiddle.electric-jetty-adapter :as adapter]
     [reitit.ring :as ring]
+    [ring.adapter.jetty9 :as jetty]
     [ring.middleware.content-type :as content-type]
     [ring.middleware.cookies :as cookies]
-    [ring.util.response :as response]
-    [shadow.cljs.devtools.api :as shadow]
-    [shadow.cljs.devtools.server :as server])
-  (:import (java.util UUID)))
+    [ring.middleware.params :as params]
+    [ring.util.response :as response])
+  (:import (org.eclipse.jetty.server.handler.gzip GzipHandler)))
+(def ^:const VERSION (not-empty (System/getProperty "HYPERFIDDLE_ELECTRIC_SERVER_VERSION")))
 
-(def non-websocket-request
-  (-> "Expected a websocket request."
-    (response/bad-request)
-    (response/content-type "application/text")))
-
-(defonce !connections (atom {}))
-
-#_(defn consume-message [original-request conn message]
-    (binding [e/*http-request* original-request]
-      (let [resolvef (bound-fn [not-found x] (r/dynamic-resolve not-found x))]
-        (e/eval resolvef
-          (io/decode message))
-        (prn resolvef)))
-
-    (prn original-request)
-    (prn message))
-
-(defn close-connection [connection-id]
-  (println (format "Connection %s closed" connection-id))
-  (swap! !connections dissoc connection-id))
-
-(defn write-msg [conn message]
-  (fn [s f]
-    (try
-      (s/put! conn message)
-      (catch Throwable e (f e)))
-    #()))
-
-(defn read-msg [conn cb]
-  (println "read-msg")
-  (prn cb)
-  (d/let-flow [message (s/take! conn)]
-    (cb (io/decode message))
-    #()))
-
-(defn electric-websocket-handler [req]
-  (d/let-flow [conn (d/catch
-                      (http/websocket-connection req)
-                      (fn [_] nil))]
-    (if-not conn
-      ;This shouldn't ever return with this setup
-      non-websocket-request
-
-      (let [connection-id (str (UUID/randomUUID))]
-
-        (s/on-closed conn (partial close-connection connection-id))
-
-        (binding [e/*http-request* req]
-          (let [resolve-m (bound-fn [not-found x] (r/dynamic-resolve not-found x))]
-            (d/let-flow [encoded-program (s/take! conn)]
-              (let [program    (io/decode encoded-program)
-                    write-fn   (comp (partial write-msg conn) io/encode)
-                    read-fn    (partial read-msg conn)
-                    booting-fn (e/eval resolve-m program)]
-                (m/?
-                  (booting-fn write-fn read-fn)))))))))
-
-  ;(s/consume (partial consume-message req conn) conn)
-
-  ;(swap! !connections assoc connection-id conn))))
-  ;(s/put! conn connection-id))))
-  ;ring handler must return something
-  nil)
-
+;;middleware
 (defn wrap-electric-websocket [handler]
   (fn [req]
-    (if (http.server/websocket-upgrade-request? req)
-      (electric-websocket-handler req)
+    (if (jetty/ws-upgrade-request? req)
+      (->> req
+        (partial adapter/electric-ws-message-handler)
+        (adapter/electric-ws-adapter)
+        (jetty/ws-upgrade-response))
+      (handler req))))
+
+(defn wrap-reject-stale-client [handler]
+  (fn [req]
+    (if (jetty/ws-upgrade-request? req)
+      (let [client-version (get-in req [:query-params "HYPERFIDDLE_ELECTRIC_CLIENT_VERSION"])]
+        (cond
+          (nil? VERSION) (handler req)
+          (= client-version VERSION) (handler req)
+          :else (adapter/reject-websocket-handler 1008 "stale client")))
       (handler req))))
 
 (defn electric-websocket-middleware [handler]
   (-> handler
+    (wrap-electric-websocket)
     (cookies/wrap-cookies)
-    (wrap-electric-websocket)))
+    (wrap-reject-stale-client)
+    (params/wrap-params)))
+
+(defn index-handler [_]
+  (-> "public/index.html"
+    (response/resource-response)
+    (response/content-type "text/html")
+    (response/header "Cache-Control" "no-store")))
 
 ;;router
 (def ring-handler
   (ring/ring-handler
     (ring/router
-      [["/" {:get {:handler (fn [_]
-                              (-> "public/index.html"
-                                (response/resource-response)
-                                (response/content-type "text/html")
-                                (response/header "Cache-Control" "no-store")))}}]
-       ["/assets/*" (ring/create-resource-handler)]]
-      {:data {:middleware [[electric-websocket-middleware]
-                           [content-type/wrap-content-type]]}})
-    (constantly {:status 404, :body "Oof!"})))
+      [["/assets/*" (ring/create-resource-handler)]]
+      {:data {:middleware [[content-type/wrap-content-type]]}})
+    index-handler
+    {:middleware [[electric-websocket-middleware]]}))
 
 ;;http server
-(defonce !closeable (atom nil))
+(defonce !server (atom nil))
 
 (defn stop! []
-  (when-let [closeable @!closeable]
-    (.close closeable)
-    (reset! !closeable nil)
+  (when-let [server @!server]
+    (jetty/stop-server server)
+    (reset! !server nil)
     :stopped))
+
+(defn- configurator [server]
+  (let [server-handler (.getHandler server)
+        gzip-handler   (doto (GzipHandler.)
+                         (.setMinGzipSize 1024)
+                         (.setHandler server-handler))]
+    (.setHandler server gzip-handler)))
 
 (defn start! []
   (stop!)
-  (let [ring-handler (var ring-handler)
-        closeable    (http/start-server ring-handler {:port             3000
-                                                      :shutdown-timeout 5})]
-    (println (str "Running on port 3000"))
-    (reset! !closeable closeable)
+  (let [;waiting on https://github.com/sunng87/ring-jetty9-adapter/issues/102
+        ;ring-handler (var ring-handler)
+        server (jetty/run-jetty ring-handler {:configurator configurator
+                                              :join?        false
+                                              :port         58080})
+        port   (-> server (.getConnectors) (first) (.getPort))]
+    (println (format "\n🦡 Honey Badger running on port %s" port "\n"))
+    (reset! !server server)
     :started))
 
 (defn restart! []
@@ -129,40 +85,10 @@
   (start!))
 
 (comment
-  ;;sync deps to classpath
-  (deps/sync-deps)
 
   ;;start or stop http server
   (start!)
   (stop!)
   (restart!)
-
-  ;;shadow server
-  (server/start!)
-  (server/stop!)
-  (shadow/compile :dev)
-  (shadow/watch :dev)
-  (shadow/release :dev)
-
-  (def x (s/stream))
-
-  (s/close! x)
-
-  @(s/put! x :a)
-  @(s/put! s :b)
-  @(s/put! s :c)
-
-  (s/take! s)
-
-  (s/consume (fn [x] (prn x)) x)
-
-  (def d (d/deferred))
-  (d/chain d (fn [m] (prn (.getName (Thread/currentThread)))))
-
-  (d/success! d "Success")
-  (prn (.getName (Thread/currentThread)))
-  (d/error! d #(println "Error"))
-
-  @d
 
   *e)
