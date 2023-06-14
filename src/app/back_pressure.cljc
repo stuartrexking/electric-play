@@ -1,8 +1,7 @@
 (ns app.back-pressure
   (:require
     [hyperfiddle.electric :as e]
-    [hyperfiddle.electric-dom2 :as dom])
-  (:import (hyperfiddle.electric Pending)))
+    [hyperfiddle.electric-dom2 :as dom]))
 
 (e/defn Page []
   (let [c (e/client e/system-time-secs)

@@ -1,6 +1,7 @@
 (ns app.core
   (:require [app.back-pressure]
             [app.chat]
+            [app.component-lifecycle]
             [app.system-properties]
             [app.todo-list]
             [app.toggle]
@@ -16,24 +17,27 @@
   (dom/text "Not Found"))
 
 (e/def routes
-  {'todo-list         {::page   app.todo-list/Page
-                       ::title  "Todo-list"
-                       ::source "https://github.com/hyperfiddle/electric-starter-app"}
-   'two-clocks        {::page   app.two-clocks/Page
-                       ::source "https://electric.hyperfiddle.net/user.demo-two-clocks!TwoClocks"
-                       ::title  "Two clocks"}
-   'toggle            {::page   app.toggle/Page
-                       ::source "https://electric.hyperfiddle.net/user.demo-toggle!Toggle"
-                       ::title  "Toggle"}
-   'system-properties {::page   app.system-properties/Page
-                       ::source "https://electric.hyperfiddle.net/user.demo-system-properties!SystemProperties"
-                       ::title  "System Properties"}
-   'chat              {::page   app.chat/Page
-                       ::source "https://electric.hyperfiddle.net/user.demo-chat!Chat"
-                       ::title  "Chat"}
-   'back-pressure     {::page   app.back-pressure/Page
-                       ::source "https://electric.hyperfiddle.net/user.tutorial-backpressure!Backpressure"
-                       ::title  "Back Pressure"}})
+  {'todo-list           {::page   app.todo-list/Page
+                         ::title  "Todo-list"
+                         ::source "https://github.com/hyperfiddle/electric-starter-app"}
+   'two-clocks          {::page   app.two-clocks/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-two-clocks!TwoClocks"
+                         ::title  "Two clocks"}
+   'toggle              {::page   app.toggle/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-toggle!Toggle"
+                         ::title  "Toggle"}
+   'system-properties   {::page   app.system-properties/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-system-properties!SystemProperties"
+                         ::title  "System Properties"}
+   'chat                {::page   app.chat/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-chat!Chat"
+                         ::title  "Chat"}
+   'back-pressure       {::page   app.back-pressure/Page
+                         ::source "https://electric.hyperfiddle.net/user.tutorial-backpressure!Backpressure"
+                         ::title  "Back Pressure"}
+   'component-lifecycle {::page   app.component-lifecycle/Page
+                         ::source "https://electric.hyperfiddle.net/user.tutorial-lifecycle!Lifecycle"
+                         ::title  "Component Lifecycle"}})
 
 (e/defn Nav []
   (dom/ul
@@ -42,7 +46,8 @@
     (dom/li (history/link ['toggle] {} (dom/text "Toggle")))
     (dom/li (history/link ['system-properties] {} (dom/text "System Properties")))
     (dom/li (history/link ['chat] {} (dom/text "Chat")))
-    (dom/li (history/link ['back-pressure] {} (dom/text "Back pressure")))))
+    (dom/li (history/link ['back-pressure] {} (dom/text "Back pressure")))
+    (dom/li (history/link ['component-lifecycle] {} (dom/text "Component lifecycle")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
