@@ -1,5 +1,6 @@
 (ns app.core
-  (:require [app.chat]
+  (:require [app.back-pressure]
+            [app.chat]
             [app.system-properties]
             [app.todo-list]
             [app.toggle]
@@ -29,7 +30,10 @@
                        ::title  "System Properties"}
    'chat              {::page   app.chat/Page
                        ::source "https://electric.hyperfiddle.net/user.demo-chat!Chat"
-                       ::title  "Chat"}})
+                       ::title  "Chat"}
+   'back-pressure     {::page   app.back-pressure/Page
+                       ::source "https://electric.hyperfiddle.net/user.tutorial-backpressure!Backpressure"
+                       ::title  "Back Pressure"}})
 
 (e/defn Nav []
   (dom/ul
@@ -37,7 +41,8 @@
     (dom/li (history/link ['two-clocks] {} (dom/text "Two clocks")))
     (dom/li (history/link ['toggle] {} (dom/text "Toggle")))
     (dom/li (history/link ['system-properties] {} (dom/text "System Properties")))
-    (dom/li (history/link ['chat] {} (dom/text "Chat")))))
+    (dom/li (history/link ['chat] {} (dom/text "Chat")))
+    (dom/li (history/link ['back-pressure] {} (dom/text "Back pressure")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
