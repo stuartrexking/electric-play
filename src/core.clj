@@ -3,6 +3,7 @@
     [hyperfiddle.electric-jetty-adapter :as adapter]
     [reitit.ring :as ring]
     [ring.adapter.jetty9 :as jetty]
+    [ring.middleware.basic-authentication :as auth]
     [ring.middleware.content-type :as content-type]
     [ring.middleware.cookies :as cookies]
     [ring.middleware.params :as params]
@@ -43,11 +44,32 @@
     (response/content-type "text/html")
     (response/header "Cache-Control" "no-store")))
 
+;;fake auth function
+(defn authenticate [username password]
+  username)
+
+(defn authentication-middleware [handler]
+  (fn [req]
+    (let [res (handler req)]
+      (if-let [username (:basic-authentication req)]
+        (response/set-cookie res "username" username {:http-only true})
+        res))))
+
 ;;router
 (def ring-handler
   (ring/ring-handler
     (ring/router
-      [["/assets/*" (ring/create-resource-handler)]]
+      [["/assets/*" (ring/create-resource-handler)]
+       ["/auth" {:get        (fn [req]
+                               (if-let [username (:basic-authentication req)]
+                                 (let [referer (get-in req [:headers "referer"] "http://localhost:58080/chat-extended")]
+                                   (-> referer
+                                     (response/redirect)
+                                     (response/set-cookie "username" username {:http-only true})))
+                                 (response/not-found "Where is the missile?")))
+                 :middleware [[auth/wrap-basic-authentication authenticate]
+                              [cookies/wrap-cookies]
+                              [authentication-middleware]]}]]
       {:data {:middleware [[content-type/wrap-content-type]]}})
     index-handler
     {:middleware [[electric-websocket-middleware]]}))

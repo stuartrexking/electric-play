@@ -1,6 +1,7 @@
 (ns app.core
   (:require [app.back-pressure]
             [app.chat]
+            [app.chat-extended]
             [app.component-lifecycle]
             [app.system-properties]
             [app.todo-list]
@@ -22,7 +23,7 @@
                          ::source "https://github.com/hyperfiddle/electric-starter-app"}
    'two-clocks          {::page   app.two-clocks/Page
                          ::source "https://electric.hyperfiddle.net/user.demo-two-clocks!TwoClocks"
-                         ::title  "Two clocks"}
+                         ::title  "Two Clocks"}
    'toggle              {::page   app.toggle/Page
                          ::source "https://electric.hyperfiddle.net/user.demo-toggle!Toggle"
                          ::title  "Toggle"}
@@ -37,7 +38,10 @@
                          ::title  "Back Pressure"}
    'component-lifecycle {::page   app.component-lifecycle/Page
                          ::source "https://electric.hyperfiddle.net/user.tutorial-lifecycle!Lifecycle"
-                         ::title  "Component Lifecycle"}})
+                         ::title  "Component Lifecycle"}
+   'chat-extended       {::page   app.chat-extended/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-chat-extended!ChatExtended"
+                         ::title  "Chat Extended"}})
 
 (e/defn Nav []
   (dom/ul
@@ -46,8 +50,9 @@
     (dom/li (history/link ['toggle] {} (dom/text "Toggle")))
     (dom/li (history/link ['system-properties] {} (dom/text "System Properties")))
     (dom/li (history/link ['chat] {} (dom/text "Chat")))
-    (dom/li (history/link ['back-pressure] {} (dom/text "Back pressure")))
-    (dom/li (history/link ['component-lifecycle] {} (dom/text "Component lifecycle")))))
+    (dom/li (history/link ['back-pressure] {} (dom/text "Back Pressure")))
+    (dom/li (history/link ['component-lifecycle] {} (dom/text "Component Lifecycle")))
+    (dom/li (history/link ['chat-extended] {} (dom/text "Chat Extended")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
