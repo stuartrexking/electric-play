@@ -7,6 +7,7 @@
             [app.todo-list]
             [app.toggle]
             [app.two-clocks]
+            [app.webview]
             [clojure.string :as str]
             [contrib.ednish]
             [contrib.str]
@@ -41,7 +42,10 @@
                          ::title  "Component Lifecycle"}
    'chat-extended       {::page   app.chat-extended/Page
                          ::source "https://electric.hyperfiddle.net/user.demo-chat-extended!ChatExtended"
-                         ::title  "Chat Extended"}})
+                         ::title  "Chat Extended"}
+   'webview       {::page   app.webview/Page
+                   ::source "https://electric.hyperfiddle.net/user.demo-webview!Webview"
+                   ::title  "Webview"}})
 
 (e/defn Nav []
   (dom/ul
@@ -52,7 +56,8 @@
     (dom/li (history/link ['chat] {} (dom/text "Chat")))
     (dom/li (history/link ['back-pressure] {} (dom/text "Back Pressure")))
     (dom/li (history/link ['component-lifecycle] {} (dom/text "Component Lifecycle")))
-    (dom/li (history/link ['chat-extended] {} (dom/text "Chat Extended")))))
+    (dom/li (history/link ['chat-extended] {} (dom/text "Chat Extended")))
+    (dom/li (history/link ['webview] {} (dom/text "Webview")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
