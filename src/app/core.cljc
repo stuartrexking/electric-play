@@ -4,6 +4,7 @@
             [app.chat-extended]
             [app.component-lifecycle]
             [app.reagent-interop]
+            [app.svg]
             [app.system-properties]
             [app.todo-list]
             [app.toggle]
@@ -49,7 +50,10 @@
                          ::title  "Webview"}
    'reagent-interop     {::page   app.reagent-interop/Page
                          ::source "https://electric.hyperfiddle.net/user.demo-reagent-interop!ReagentInterop"
-                         ::title  "Reagent Interop"}})
+                         ::title  "Reagent Interop"}
+   'svg                 {::page   app.svg/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-svg!SVG"
+                         ::title  "SVG"}})
 
 (e/defn Nav []
   (dom/ul
@@ -62,7 +66,8 @@
     (dom/li (history/link ['component-lifecycle] {} (dom/text "Component Lifecycle")))
     (dom/li (history/link ['chat-extended] {} (dom/text "Chat Extended")))
     (dom/li (history/link ['webview] {} (dom/text "Webview")))
-    (dom/li (history/link ['reagent-interop] {} (dom/text "Reagent Interop")))))
+    (dom/li (history/link ['reagent-interop] {} (dom/text "Reagent Interop")))
+    (dom/li (history/link ['svg] {} (dom/text "SVG")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
