@@ -4,6 +4,10 @@
             [app.chat-extended]
             [app.component-lifecycle]
             [app.reagent-interop]
+            [app.seven-guis-counter]
+            [app.seven-guis-crud]
+            [app.seven-guis-temperature-converter]
+            [app.seven-guis-timer]
             [app.svg]
             [app.system-properties]
             [app.todo-list]
@@ -21,39 +25,51 @@
   (dom/text "Not Found"))
 
 (e/def routes
-  {'todo-list           {::page   app.todo-list/Page
-                         ::title  "Todo-list"
-                         ::source "https://github.com/hyperfiddle/electric-starter-app"}
-   'two-clocks          {::page   app.two-clocks/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-two-clocks!TwoClocks"
-                         ::title  "Two Clocks"}
-   'toggle              {::page   app.toggle/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-toggle!Toggle"
-                         ::title  "Toggle"}
-   'system-properties   {::page   app.system-properties/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-system-properties!SystemProperties"
-                         ::title  "System Properties"}
-   'chat                {::page   app.chat/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-chat!Chat"
-                         ::title  "Chat"}
-   'back-pressure       {::page   app.back-pressure/Page
-                         ::source "https://electric.hyperfiddle.net/user.tutorial-backpressure!Backpressure"
-                         ::title  "Back Pressure"}
-   'component-lifecycle {::page   app.component-lifecycle/Page
-                         ::source "https://electric.hyperfiddle.net/user.tutorial-lifecycle!Lifecycle"
-                         ::title  "Component Lifecycle"}
-   'chat-extended       {::page   app.chat-extended/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-chat-extended!ChatExtended"
-                         ::title  "Chat Extended"}
-   'webview             {::page   app.webview/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-webview!Webview"
-                         ::title  "Webview"}
-   'reagent-interop     {::page   app.reagent-interop/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-reagent-interop!ReagentInterop"
-                         ::title  "Reagent Interop"}
-   'svg                 {::page   app.svg/Page
-                         ::source "https://electric.hyperfiddle.net/user.demo-svg!SVG"
-                         ::title  "SVG"}})
+  {'todo-list                        {::page   app.todo-list/Page
+                                      ::title  "Todo-list"
+                                      ::source "https://github.com/hyperfiddle/electric-starter-app"}
+   'two-clocks                       {::page   app.two-clocks/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-two-clocks!TwoClocks"
+                                      ::title  "Two Clocks"}
+   'toggle                           {::page   app.toggle/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-toggle!Toggle"
+                                      ::title  "Toggle"}
+   'system-properties                {::page   app.system-properties/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-system-properties!SystemProperties"
+                                      ::title  "System Properties"}
+   'chat                             {::page   app.chat/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-chat!Chat"
+                                      ::title  "Chat"}
+   'back-pressure                    {::page   app.back-pressure/Page
+                                      ::source "https://electric.hyperfiddle.net/user.tutorial-backpressure!Backpressure"
+                                      ::title  "Back Pressure"}
+   'component-lifecycle              {::page   app.component-lifecycle/Page
+                                      ::source "https://electric.hyperfiddle.net/user.tutorial-lifecycle!Lifecycle"
+                                      ::title  "Component Lifecycle"}
+   'chat-extended                    {::page   app.chat-extended/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-chat-extended!ChatExtended"
+                                      ::title  "Chat Extended"}
+   'webview                          {::page   app.webview/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-webview!Webview"
+                                      ::title  "Webview"}
+   'reagent-interop                  {::page   app.reagent-interop/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-reagent-interop!ReagentInterop"
+                                      ::title  "Reagent Interop"}
+   'svg                              {::page   app.svg/Page
+                                      ::source "https://electric.hyperfiddle.net/user.demo-svg!SVG"
+                                      ::title  "SVG"}
+   'seven-guis-counter               {::page   app.seven-guis-counter/Page
+                                      ::source "https://eugenkiss.github.io/7guis/tasks#counter"
+                                      ::title  "Seven GUIs Counter"}
+   'seven-guis-temperature-converter {::page   app.seven-guis-temperature-converter/Page
+                                      ::source "https://eugenkiss.github.io/7guis/tasks#counter"
+                                      ::title  "Seven GUIs Temperature Converter"}
+   'seven-guis-timer                 {::page   app.seven-guis-timer/Page
+                                      ::source "https://eugenkiss.github.io/7guis/tasks#counter"
+                                      ::title  "Seven GUIs Timer"}
+   'seven-guis-crud                  {::page   app.seven-guis-crud/Page
+                                      ::source "https://eugenkiss.github.io/7guis/tasks#counter"
+                                      ::title  "Seven GUIs CRUD"}})
 
 (e/defn Nav []
   (dom/ul
@@ -67,7 +83,11 @@
     (dom/li (history/link ['chat-extended] {} (dom/text "Chat Extended")))
     (dom/li (history/link ['webview] {} (dom/text "Webview")))
     (dom/li (history/link ['reagent-interop] {} (dom/text "Reagent Interop")))
-    (dom/li (history/link ['svg] {} (dom/text "SVG")))))
+    (dom/li (history/link ['svg] {} (dom/text "SVG")))
+    (dom/li (history/link ['seven-guis-counter] {} (dom/text "Seven GUIs Counter")))
+    (dom/li (history/link ['seven-guis-temperature-converter] {} (dom/text "Seven GUIs Temperature Converter")))
+    (dom/li (history/link ['seven-guis-timer] {} (dom/text "Seven GUIs Timer")))
+    (dom/li (history/link ['seven-guis-crud] {} (dom/text "Seven GUIs CRUD")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
