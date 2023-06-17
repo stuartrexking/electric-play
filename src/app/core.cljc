@@ -3,6 +3,7 @@
             [app.chat]
             [app.chat-extended]
             [app.component-lifecycle]
+            [app.reagent-interop]
             [app.system-properties]
             [app.todo-list]
             [app.toggle]
@@ -43,9 +44,12 @@
    'chat-extended       {::page   app.chat-extended/Page
                          ::source "https://electric.hyperfiddle.net/user.demo-chat-extended!ChatExtended"
                          ::title  "Chat Extended"}
-   'webview       {::page   app.webview/Page
-                   ::source "https://electric.hyperfiddle.net/user.demo-webview!Webview"
-                   ::title  "Webview"}})
+   'webview             {::page   app.webview/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-webview!Webview"
+                         ::title  "Webview"}
+   'reagent-interop     {::page   app.reagent-interop/Page
+                         ::source "https://electric.hyperfiddle.net/user.demo-reagent-interop!ReagentInterop"
+                         ::title  "Reagent Interop"}})
 
 (e/defn Nav []
   (dom/ul
@@ -57,7 +61,8 @@
     (dom/li (history/link ['back-pressure] {} (dom/text "Back Pressure")))
     (dom/li (history/link ['component-lifecycle] {} (dom/text "Component Lifecycle")))
     (dom/li (history/link ['chat-extended] {} (dom/text "Chat Extended")))
-    (dom/li (history/link ['webview] {} (dom/text "Webview")))))
+    (dom/li (history/link ['webview] {} (dom/text "Webview")))
+    (dom/li (history/link ['reagent-interop] {} (dom/text "Reagent Interop")))))
 
 (e/defn Router []
   (if-let [route (get routes (first history/route))]
